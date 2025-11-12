@@ -99,6 +99,74 @@ As variáveis são consumidas em `src/lib/firebase.js`.
 - `.gitignore` evita versionar `node_modules`, builds, logs e secrets (`.env*`).
 - `Referrer-Policy: no-referrer`, `frame-ancestors 'none'`, `form-action 'self'` e `upgrade-insecure-requests` aplicados.
 
+### 🔒 Proteção de Credenciais Firebase (Medidas Avançadas)
+Implementamos um sistema completo de segurança para proteger credenciais sensíveis, especialmente arquivos de conta de serviço Firebase:
+
+#### **Prevenção de Commits Acidentais**
+- **Arquivos de Conta de Serviço Firebase**: Padrões específicos bloqueiam arquivos `*firebase-adminsdk*.json` e `*service-account*.json`
+- **Chaves Privadas**: Bloqueia arquivos `*.pem`, `*.key`, `*.p12`, `*.pfx`
+- **Verificação Automática**: Script `scripts/security-check.cjs` valida todo código antes de commits
+- **Hooks Pré-commit**: Configurados para Windows via `scripts/pre-commit.bat`
+
+#### **Validação de Segurança Automática**
+Execute os testes de segurança a qualquer momento:
+```bash
+node src/tests/security-validation.cjs
+```
+
+Os testes verificam:
+- ✅ Detecção de chaves privadas no código
+- ✅ Detecção de chaves de API Firebase (padrão `AIzaSy`)
+- ✅ Bloqueio de emails de conta de serviço
+- ✅ Validação de padrões sensíveis no .gitignore
+- ✅ Existência de .env.example com template seguro
+- ✅ Funcionamento dos hooks pré-commit
+
+#### **Configuração para Novos Desenvolvedores**
+1. **Instalar hooks de segurança** (Windows):
+   ```bash
+   setup-hooks.bat
+   ```
+
+2. **Configurar variáveis de ambiente**:
+   - Copie `.env.example` para `.env.local`
+   - Preencha com suas credenciais Firebase (sem espaços ou aspas)
+   - **Nunca commite o arquivo `.env.local`**
+
+3. **Verificar segurança antes de commits**:
+   ```bash
+   git add .
+   git commit -m "sua mensagem"
+   # O hook pré-commit executará validações automaticamente
+   ```
+
+#### **Sistema de Fallback para Permissões Firebase**
+- Quando o Firestore rejeitar por permissões insuficientes, o sistema automaticamente:
+  - Salva dados no `localStorage` do navegador
+  - Exibe notificação amigável ao usuário
+  - Sincroniza dados quando as permissões forem restauradas
+- **Arquivo de configuração**: `src/utils/firebaseFallback.js`
+
+#### **Documentação de Segurança Detalhada**
+Para informações completas sobre configuração Firebase e segurança, consulte:
+- `FIREBASE_SETUP.md` - Guia completo de configuração
+- `scripts/security-check.cjs` - Código fonte do validador
+- `src/tests/security-validation.cjs` - Suite de testes
+
+#### **Práticas Recomendadas para a Equipe**
+1. **Sempre** execute `setup-hooks.bat` após clonar o repositório
+2. **Nunca** commite arquivos com padrões: `*firebase-adminsdk*.json`, `*.pem`, `*.key`
+3. **Sempre** use `.env.local` para credenciais (nunca `.env` ou `.env.production`)
+4. **Verifique** se seu código passa nos testes de segurança antes de fazer push
+5. **Reporte** imediatamente se encontrar credenciais expostas no histórico de commits
+
+#### **Resolução de Problemas de Segurança**
+Se encontrar erros de "permissão negada" no Firebase:
+1. Verifique as regras de segurança do Firestore
+2. Confirme que está usando a chave correta (Web API Key, não Service Account)
+3. O sistema automaticamente ativa o fallback para localStorage
+4. Consulte `FIREBASE_SETUP.md` para configuração detalhada das regras
+
 ## Performance
 - Divisão de bundle com `manualChunks` (React, Router, Recharts, Firebase) para melhorar carregamento inicial.
 

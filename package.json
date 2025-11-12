@@ -9,10 +9,12 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "start:prod": "vite build && vite preview --strictPort --port 4173 --host",
-    "test": "vitest"
+    "test": "vitest",
+    "create-test-users": "node scripts/create-test-users.cjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
+    "dotenv": "^16.3.1",
     "firebase": "^10.14.1",
     "lucide-react": "^0.553.0",
     "react": "^18.2.0",

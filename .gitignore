@@ -32,3 +32,11 @@ firebase-debug.log
 
 # Misc
 *.local
+
+# Firebase Service Account Keys (Security - Never commit these!)
+*firebase-adminsdk*.json
+*service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx

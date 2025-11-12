@@ -122,3 +122,63 @@
   .btn-danger:hover { background-color: var(--danger-hover); }
   .btn-danger:focus { box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 35%, transparent); }
 }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium outline-none;
+    padding: 12px 24px;
+    background-color: #007BFF;
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 160ms ease, box-shadow 160ms ease, transform 80ms ease;
+    border: 1px solid transparent;
+  }
+  .btn-primary:hover { background-color: #006FE6; }
+  .btn-primary:active { box-shadow: 0 1px 2px rgba(0,0,0,0.1); transform: translateY(1px); }
+  .btn-primary:focus { box-shadow: 0 0 0 3px color-mix(in oklab, #007BFF 55%, transparent); }
+
+  /* Animações para o modal Nova Categoria */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes scale-in {
+    from { 
+      opacity: 0; 
+      transform: translate(-50%, -50%) scale(0.95); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translate(-50%, -50%) scale(1); 
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 200ms ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scale-in 200ms ease-out;
+  }
+  
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Scrollbar personalizada para grids */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--surface-muted);
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--text);
+  }

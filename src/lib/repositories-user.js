@@ -8,7 +8,8 @@ import {
   orderBy, 
   doc, 
   updateDoc, 
-  deleteDoc
+  deleteDoc,
+  where
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { getAuth } from 'firebase/auth'
@@ -18,44 +19,30 @@ function getCurrentUserId() {
   const auth = getAuth()
   const user = auth.currentUser
   if (!user) {
-    console.warn('⚠️ Usuário não autenticado - usando fallback LocalStorage')
     throw new Error('Usuário não autenticado')
   }
-  console.log('✅ Usuário autenticado:', user.uid, '- Email:', user.email)
   return user.uid
 }
 
 // Função auxiliar para obter referência de coleção do usuário
 function getUserCollection(collectionName) {
   const userId = getCurrentUserId()
-  const collectionRef = collection(db, 'users', userId, collectionName)
-  console.log(`📁 Acessando coleção: users/${userId}/${collectionName}`)
-  return collectionRef
-}
-
-// Função auxiliar para obter referência de documento do usuário
-function getUserDocument(collectionName, docId) {
-  const userId = getCurrentUserId()
-  return doc(db, 'users', userId, collectionName, docId)
+  return collection(db, 'users', userId, collectionName)
 }
 
 export async function addTransaction({ tipo, valor, descricao, data, categoria, conta, status }) {
-  console.log(`💰 Adicionando transação: ${descricao} - R$ ${valor}`)
   if (!tipo || !descricao || !data || !categoria || !conta) throw new Error('Campos obrigatórios ausentes')
   const valorNum = Number(valor)
   if (!Number.isFinite(valorNum) || valorNum <= 0) throw new Error('Valor inválido')
   
   try {
-    const result = await addDoc(getUserCollection('transactions'), {
+    return addDoc(getUserCollection('transactions'), {
       tipo, valor: valorNum, descricao, data, categoria, conta, status: status || 'pendente', createdAt: serverTimestamp(),
     })
-    console.log(`✅ Transação adicionada com sucesso: ${result.id}`)
-    return result
   } catch (error) {
-    console.error(`❌ Erro ao adicionar transação:`, error.code, '-', error.message)
-    if (error.message === 'Usuário não autenticado') {
-      // Fallback para LocalStorage quando não há usuário autenticado
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      // Fallback para LocalStorage quando não há permissão no Firebase
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const transactions = JSON.parse(localStorage.getItem('transactions') || '[]')
       const newTransaction = { 
         id: crypto.randomUUID(), 
@@ -86,8 +73,9 @@ export async function addAccount({ name, type, balance }) {
       name, type, balance: balanceNum, createdAt: serverTimestamp(),
     })
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      // Fallback para LocalStorage
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const accounts = JSON.parse(localStorage.getItem('accounts') || '[]')
       const newAccount = { 
         id: crypto.randomUUID(), 
@@ -116,8 +104,9 @@ export async function addSubscription({ name, amount, frequency, dueDay, categor
       name, amount: amountNum, frequency, dueDay: due, category, createdAt: serverTimestamp(),
     })
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      // Fallback para LocalStorage
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const subscriptions = JSON.parse(localStorage.getItem('subscriptions') || '[]')
       const newSubscription = { 
         id: crypto.randomUUID(), 
@@ -142,8 +131,8 @@ export async function listTransactions() {
     const snap = await getDocs(q)
     return snap.docs.map(d => ({ id: d.id, ...d.data() }))
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       return JSON.parse(localStorage.getItem('transactions') || '[]')
     }
     throw error
@@ -159,8 +148,8 @@ export function watchTransactions(callback) {
         callback(items)
       },
       error => {
-        if (error.message === 'Usuário não autenticado') {
-          console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+        if (error.code === 'permission-denied') {
+          console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
           const items = JSON.parse(localStorage.getItem('transactions') || '[]')
           callback(items)
           return () => {}
@@ -170,8 +159,8 @@ export function watchTransactions(callback) {
       }
     )
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const items = JSON.parse(localStorage.getItem('transactions') || '[]')
       callback(items)
       return () => {}
@@ -192,8 +181,9 @@ export async function addCategory({ name, type, icon, color }) {
       name, type, icon, color, createdAt: serverTimestamp(),
     })
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      // Fallback para LocalStorage quando não há permissão no Firebase
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const categories = JSON.parse(localStorage.getItem('categories') || '[]')
       const newCategory = { 
         id: crypto.randomUUID(), 
@@ -218,12 +208,15 @@ export async function updateCategory(id, { name, type, icon, color }) {
   if (!color || !/^#[0-9A-F]{6}$/i.test(color)) throw new Error('Cor inválida')
   
   try {
-    return await updateDoc(getUserDocument('categories', id), {
+    const { updateDoc, doc } = await import('firebase/firestore')
+    const userCollection = getUserCollection('categories')
+    return await updateDoc(doc(userCollection, id), {
       name, type, icon, color, updatedAt: serverTimestamp(),
     })
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      // Fallback para LocalStorage quando não há permissão no Firebase
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const categories = JSON.parse(localStorage.getItem('categories') || '[]')
       const index = categories.findIndex(c => c.id === id)
       if (index === -1) throw new Error('Categoria não encontrada')
@@ -240,10 +233,12 @@ export async function deleteCategory(id) {
   if (!id) throw new Error('ID da categoria é obrigatório')
   
   try {
-    return await deleteDoc(getUserDocument('categories', id))
+    const { deleteDoc, doc } = await import('firebase/firestore')
+    const userCollection = getUserCollection('categories')
+    return await deleteDoc(doc(userCollection, id))
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const categories = JSON.parse(localStorage.getItem('categories') || '[]')
       const filteredCategories = categories.filter(c => c.id !== id)
       localStorage.setItem('categories', JSON.stringify(filteredCategories))
@@ -259,8 +254,8 @@ export async function listCategories() {
     const snap = await getDocs(q)
     return snap.docs.map(d => ({ id: d.id, ...d.data() }))
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       return JSON.parse(localStorage.getItem('categories') || '[]')
     }
     throw error
@@ -276,8 +271,8 @@ export function watchCategories(callback) {
         callback(items)
       },
       error => {
-        if (error.message === 'Usuário não autenticado') {
-          console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+        if (error.code === 'permission-denied') {
+          console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
           const items = JSON.parse(localStorage.getItem('categories') || '[]')
           callback(items)
           return () => {}
@@ -287,8 +282,8 @@ export function watchCategories(callback) {
       }
     )
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const items = JSON.parse(localStorage.getItem('categories') || '[]')
       callback(items)
       return () => {}
@@ -309,8 +304,8 @@ export async function seedTransactions() {
   try {
     await Promise.all(exemplos.map(e => addTransaction(e)))
   } catch (error) {
-    if (error.message === 'Usuário não autenticado') {
-      console.warn('Usuário não autenticado, usando LocalStorage como fallback')
+    if (error.code === 'permission-denied') {
+      console.warn('Sem permissão no Firebase, usando LocalStorage como fallback')
       const transactions = JSON.parse(localStorage.getItem('transactions') || '[]')
       const newTransactions = [...transactions, ...exemplos.map(e => ({
         ...e,
