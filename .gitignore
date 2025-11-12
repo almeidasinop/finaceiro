@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Builds e bundles
+dist/
+out/
+.cache/
+.tmp/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variáveis e segredos
+.env
+.env.*
+!.env.example
+
+# Ferramentas/IDE
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Test/coverage
+coverage/
+
+# Firebase
+.firebase/
+firebase-debug.log
+
+# Misc
+*.local

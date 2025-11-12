@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core palette - Light */
+    --bg: #f8fafc; /* slate-50 */
+    --surface: #ffffff;
+    --surface-muted: #f1f5f9; /* slate-100 */
+    --text: #0f172a; /* slate-900 */
+    --text-muted: #475569; /* slate-600 */
+    --border: #e2e8f0; /* slate-200 */
+    --accent: #0369a1; /* sky-700 for WCAG AA */
+    --accent-hover: #075985; /* sky-800 */
+    --on-accent: #ffffff;
+    --hover-surface: #e0f2fe; /* sky-100 */
+    --focus-ring: #0ea5e9; /* sky-500 */
+    --disabled-bg: #e5e7eb; /* gray-200 */
+    --disabled-text: #9ca3af; /* gray-400 */
+    --brand: #0ea5e9; /* sky-500 */
+
+    /* Buttons - Light */
+    --btn-bg: var(--accent);
+    --btn-text: var(--on-accent);
+    --btn-hover-bg: var(--accent-hover);
+    --btn-hover-text: var(--on-accent);
+    --btn-active-bg: #064e3b; /* deepen for active state - emerald-900 as contrast example */
+    --btn-active-text: var(--on-accent);
+
+    --btn-muted-bg: var(--surface-muted);
+    --btn-muted-text: var(--text);
+    --btn-muted-hover-bg: #e2e8f0; /* slate-200 */
+    --btn-muted-hover-text: var(--text);
+
+    --danger: #b91c1c; /* red-700 */
+    --danger-hover: #991b1b; /* red-800 */
+    --on-danger: #fff;
+  }
+
+  .dark {
+    /* Core palette - Dark */
+    --bg: #0b0f19; /* near neutral-950 */
+    --surface: #0f172a; /* slate-900 */
+    --surface-muted: #0b1220; /* deep slate */
+    --text: #e5e7eb; /* gray-200 */
+    --text-muted: #cbd5e1; /* slate-300 */
+    --border: #334155; /* slate-700 */
+    --accent: #0ea5e9; /* sky-500 on dark */
+    --accent-hover: #38bdf8; /* sky-400 */
+    --on-accent: #0b1220; /* dark readable on accent */
+    --hover-surface: #0b1220; /* subtle highlight */
+    --focus-ring: #38bdf8; /* sky-400 */
+    --disabled-bg: #1f2937; /* gray-800 */
+    --disabled-text: #6b7280; /* gray-500 */
+    --brand: #0ea5e9;
+
+    /* Buttons - Dark */
+    --btn-bg: var(--accent);
+    --btn-text: var(--on-accent);
+    --btn-hover-bg: var(--accent-hover);
+    --btn-hover-text: var(--on-accent);
+    --btn-active-bg: #0284c7; /* sky-600 for active on dark */
+    --btn-active-text: var(--on-accent);
+
+    --btn-muted-bg: #0b1220; /* subtle */
+    --btn-muted-text: var(--text);
+    --btn-muted-hover-bg: #111827; /* gray-900 */
+    --btn-muted-hover-text: var(--text);
+
+    --danger: #ef4444; /* red-500 visible on dark */
+    --danger-hover: #f87171; /* red-400 */
+    --on-danger: #0b1220; /* dark text on red for AA */
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  }
+
+  /* Smooth theme transitions respecting reduced motion */
+  * {
+    transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium outline-none;
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid transparent;
+  }
+  .btn:hover { background-color: var(--btn-hover-bg); color: var(--btn-hover-text); }
+  .btn:active { background-color: var(--btn-active-bg); color: var(--btn-active-text); }
+  .btn:focus { box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus-ring) 60%, transparent); }
+  .btn:disabled { background-color: var(--disabled-bg); color: var(--disabled-text); cursor: not-allowed; }
+
+  .btn-muted {
+    @apply inline-flex items-center justify-center rounded-md px-3 py-1 text-sm outline-none;
+    background-color: var(--btn-muted-bg);
+    color: var(--btn-muted-text);
+    border: 1px solid var(--border);
+  }
+  .btn-muted:hover { background-color: var(--btn-muted-hover-bg); color: var(--btn-muted-hover-text); }
+  .btn-muted:focus { box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus-ring) 50%, transparent); }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-md px-3 py-1 text-sm outline-none;
+    background-color: var(--danger);
+    color: var(--on-danger);
+    border: 1px solid transparent;
+  }
+  .btn-danger:hover { background-color: var(--danger-hover); }
+  .btn-danger:focus { box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 35%, transparent); }
+}
